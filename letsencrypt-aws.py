@@ -105,10 +105,8 @@ class ELBCertificate(object):
 
         response = self.iam_client.upload_server_certificate(
             ServerCertificateName=generate_certificate_name(
-                hosts,
-                x509.load_pem_x509_certificate(
-                    pem_certificate, default_backend()
-                )
+                logger,
+                hosts
             ),
             PrivateKey=private_key.private_bytes(
                 encoding=serialization.Encoding.PEM,
@@ -246,12 +244,9 @@ def find_dns_challenge(authz):
             yield combo[0]
 
 
-def generate_certificate_name(hosts, cert):
-    return "{serial}-{expiration}-{hosts}".format(
-        serial=cert.serial,
-        expiration=cert.not_valid_after.date(),
-        hosts="-".join(h.replace(".", "_") for h in hosts),
-    )[:128]
+def generate_certificate_name(logger, hosts):
+    logger.emit("host-cert",host=hosts[0])
+    return hosts[0]
 
 
 class AuthorizationRecord(object):
